@@ -1,0 +1,261 @@
+#!/bin/bash
+set -m
+
+Player="X"
+win=" "
+full=0
+
+function board_init()
+
+{
+a1=" " && a2=" " && a3=" "
+b1=" " && b2=" " && b3=" "
+c1=" " && c2=" " && c3=" "
+d1="p1" && d2=" "
+f1=" " && f2=" "
+}
+
+function draw_board()
+
+{
+	clear
+	echo "   | 1 | 2 | 3 |"
+	echo "---|---|---|---|"
+	echo " a | ${a1} | ${a2} | ${a3} |"
+	echo "---|---|---|---|"
+	echo " b | ${b1} | ${b2} | ${b3} |"
+	echo "---|---|---|---|"
+	echo " c | ${c1} | ${c2} | ${c3} |"
+	echo "----------------"
+	echo "Player | ${d1} | ${d2} |"
+	echo "Mark   |  ${f1} |  ${f2} |"
+
+}
+
+
+
+function Main_Menu()
+
+{
+clear
+echo -e "1. New Game\n2. Exit\n\nType the number to do action."
+read action
+
+	if [[ $action == "1" ]]; then
+	#echo "$action 1"
+	New_Game
+	elif [[ $action == "2" ]]; then
+	set -e
+	else
+	clear
+	echo "Wrong input"
+	sleep 2
+	Main_Menu
+	fi
+}
+
+
+function New_Game ()
+
+{
+board_init
+b_cpu
+b_cross
+clear
+draw_board
+turns
+#summary
+}
+
+
+function b_cpu ()
+
+{
+echo "Want to play with CPU? Y/N"
+read bCPU
+	if [[ $bCPU == "Y" ]] || [[ $bCPU == "y" ]]; then
+	bCPU=1
+	d2="AI"
+	echo "Playing with CPU"
+	sleep 3
+	elif [[ $bCPU == "N" ]] || [[ $bCPU == "n" ]]; then
+	bCPU=0
+	d2="P2"
+	echo "Player vs Player"
+	sleep 1
+	else
+	echo "Wrong input"
+	sleep 2
+	b_cpu
+	fi
+}
+
+
+function b_cross ()
+
+{
+echo "Is player 1 playing Cross? Y/N"
+read p1
+	if [[ $p1 == "Y" ]] || [[ $p1 == "y" ]]; then
+	p1="X"
+	f1="X"
+		if [[ $bCPU -eq 1 ]]; then
+		cpu="O"
+		f2="O"
+		else
+		p2="O"
+		f2="O"
+		fi
+	elif [[ $p1 == "N" ]] || [[ $p1 == "n" ]]; then
+	p1="O"
+	f1="O"
+		if [[ $bCPU -eq 1 ]]; then
+		cpu="X"
+		f2="X"
+		else
+		p2="X"
+		f2="X"
+		fi
+	else
+	echo "Wrong input"
+	sleep 2
+	b_cross
+	fi
+}
+
+
+function turns()
+
+{
+	while [[ $win == " " ]] && [[  $full -ne 9 ]]
+	do
+		echo "${Player} Turn: pick field."
+		pick_field "$Player"
+		draw_board
+		check_win
+		change_player "$Player"
+		((full++))
+	done
+
+
+}
+
+
+function change_player()
+{
+	if [[ $1 == "X" ]]; then
+		Player="O"
+	else
+		Player="X"
+	fi
+}
+
+function check_win()
+{
+
+	check_line $a1 $a2 $a3
+	check_line $b1 $b2 $b3
+	check_line $c1 $c2 $c3
+	check_line $a1 $b1 $c1
+	check_line $a2 $b2 $c2
+	check_line $a3 $b3 $c3
+	check_line $a1 $b2 $c3
+	check_line $a3 $b2 $c1
+	check_end
+
+}
+
+
+function check_line()
+{
+	if [[ $1 == $Player ]] && [[ $2 == $Player ]] && [[ $3 == $Player ]]; then
+		echo "Player ${Player} wins. CONGRATULATION!!!"
+		win="${Player}"
+		sleep 5
+	fi
+}
+
+function check_end()
+{
+	if [[ $win == " " ]] && [[ $full -eq 8 ]]; then
+		echo "Tie"
+		sleep 2
+	fi
+}
+
+function pick_field()
+
+{
+	if [[ $bCPU -eq 0 ]] || ([[ $bCPU -eq 1 ]] && [[ $Player == $f1 ]]) ; then
+		read i1
+	else
+		random_cpu
+	fi
+
+	if [[ $i1 == "a1" ]] && [[ $a1 == " " ]]; then
+		a1=$1
+	elif [[ $i1 == "a2" ]] && [[ $a2 == " " ]]; then
+		a2=$1
+	elif [[ $i1 == "a3" ]] && [[ $a3 == " " ]]; then
+		a3=$1
+	elif [[ $i1 == "b1" ]] && [[ $b1 == " " ]]; then
+		b1=$1
+	elif [[ $i1 == "b2" ]] && [[ $b2 == " " ]]; then
+		b2=$1
+	elif [[ $i1 == "b3" ]] && [[ $b3 == " " ]]; then
+		b3=$1
+	elif [[ $i1 == "c1" ]] && [[ $c1 == " " ]]; then
+		c1=$1
+	elif [[ $i1 == "c2" ]] && [[ $c2 == " " ]]; then
+		c2=$1
+	elif [[ $i1 == "c3" ]] && [[ $c3 == " " ]]; then
+		c3=$1
+	else
+		if [[ $bCPU -eq 0 ]] || ([[ $bCPU -eq 1 ]] && [[ $Player == $f1 ]]) ; then
+			echo "Wrong input or field is taken. Try again."
+			sleep 1
+		fi
+	pick_field "$Player"
+	fi
+}
+
+
+function random_cpu()
+{
+	r=$(( $RANDOM % 9 ));
+	case $r in
+	0)
+		i1="a1"
+		;;
+	1)
+		i1="b1"
+		;;
+	2)
+		i1="c1"
+		;;
+	3)
+		i1="a2"
+		;;
+	4)
+		i1="b2"
+		;;
+	5)
+		i1="c2"
+		;;
+	6)
+		i1="a3"
+		;;
+	7)
+		i1="b3"
+		;;
+	8)
+		i1="c3"
+		;;
+
+	esac
+
+
+}
+
+Main_Menu
+
